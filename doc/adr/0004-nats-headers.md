@@ -145,51 +145,54 @@ direct map access if the client doesn't wish to have the header modified. This
 has the implication that non-canonical Headers are invisible to `http.Header`'s
 API, as the API performs a canonical key conversion prior to any operation.
 
-### Case-insensitive Lookups, Case-preserving Operations
+### Case-sensitive Operations
 
 In order to promote compatibility across clients, this section describes how
 other language clients should behave. All lookup operations are
-_case-insensitive_. All operations are _case-preserving_. Implementations may
-need to provide an option or function to constrain the function only to keys
-matching exactly.
+_case-sensitive_. All operations are _case-preserving_. Implementations may need
+to provide an option or function to relax the function to relax matches keys
+matching case-insensitively.
 
 #### Reading Values
 
-`GET` and `VALUES` are case-insensitive operations.
+`GET` and `VALUES` are case-sensitive operations.
 
 - `GET` returns a `string` of the first value found matching the specified key
-  in a case-insensitive lookup.
-- `VALUES` returns a list of all values that case-insensitively match the
-  specified key.
+  in a case-sensitive lookup or an empty string.
+- `VALUES` returns a list of all values that case-sensitive match the specified
+  key or an empty/nil/null list.
 
 #### Setting Values
 
-- `APPEND` is a case-preserving operation. The header is set exactly as
-  specified by the user.
-- `SET` and `DELETE` may seem ambiguous operations, but they are not. The
-  lookups are case-insensitive, the writes are case-preserving:
-  - `DELETE` removes keys in case-insensitive operation
+- `APPEND` is a case-sensitive, and case-preserving operation. The header is set
+  exactly as specified by the user.
+- `SET` and `DELETE` are case-sensitive:
+  - `DELETE` removes headers in case-sensitive operation
   - `SET` can be considered the result of a `DELETE` followed by an `APPEND`.
-    This means all equivalent keys are deleted, and the specified value is added
-    under the specified key.
+    This means only exact-match keys are deleted, and the specified value is
+    added under the specified key.
 
-#### Exact Case Semantics
+#### Case-insensitive Option
 
-If the client implementation doesn't provide direct access to the underlying
-representation, the client will want to provide case-sensitive functions or add
-an argument to `GET`, `VALUES`, `SET`, `DELETE`. In the presence of an `exact`
-match requirement, the functions will only operate on exact header matches.
-`APPEND` is case preserving operation, thus it doesn't require an `exact`
-option.
+To simplify user operations, clients may wish to provide a case-insensitive
+matching function or option. The operations `GET`, `VALUES`, `SET`, `DELETE` In
+the presence of a `case-insensitive` match requirement, the functions will only
+operate on equivalent matches. `APPEND` is case preserving operation, thus it
+doesn't require an `exact` option.
 
 This functionality is constrained as follows:
 
-- `GET` returns the first matching header value in a case-sensitive match. If
-  the exact key is not found, an empty string is returned.
-- `VALUES` returns all values case-sensitive matching the header. If the exact
-  key is not found, an empty/nil/null list is returned.
-- `DELETE` removes the exact header. Equivalents are ignored.
-- `SET` is the combination of an _exact_ `DELETE` followed by an `APPEND`.
+- `GET` returns the first matching header value in a case-insensitive match.
+- `VALUES` returns the union of all headers that case-insensitive match. If the
+  exact key is not found, an empty/nil/null list is returned.
+- `DELETE` removes the all headers that case-insensitive match the specified
+  key.
+- `SET` is the combination of a case-insensitive `DELETE` followed by an
+  `APPEND`.
+  
+Note that case-insensitive operations are only suggested, and not required to
+be implemented by clients, specially if the implementation allows the user
+code to easily iterate over keys and values.
 
 #### Go Client
 
