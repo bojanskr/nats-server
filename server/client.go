@@ -3999,7 +3999,7 @@ func (c *client) processMsgResults(acc *Account, r *SublistResult, msg, deliver,
 			// Leaf node delivery audience is different however.
 			// Also leaf nodes are always no echo, so we make sure we are not
 			// going to send back to ourselves here.
-			if c != sub.client && (c.kind != ROUTER || sub.client.isHubLeafNode()) {
+			if c != sub.client {
 				c.addSubToRouteTargets(sub)
 			}
 			continue
